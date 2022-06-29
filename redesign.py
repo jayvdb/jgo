@@ -46,6 +46,9 @@ class XML:
             XML._strip_ns(child)
 
 class MavenPOM(XML):
+    """
+    DOM representation of pom.xml content.
+    """
 
     @property
     def groupId(self) -> Optional[str]:
@@ -88,6 +91,9 @@ class MavenPOM(XML):
         return devs
 
 class MavenMetadata(XML):
+    """
+    DOM representation of a maven-metadata.xml file.
+    """
 
     @property
     def groupId(self) -> Optional[str]:
@@ -122,6 +128,9 @@ class MavenMetadata(XML):
         return self.value("versioning/release")
 
 class MavenComponent:
+    """
+    FIXME: Sort this code into proper spots.
+    """
 
     def __init__(self, g: str, a: str):
         self.groupId = g
@@ -238,6 +247,7 @@ THIS WORKS:
 
 - [DEPENDENCIES] get list of dependencies for a given POM
  -- probably want to OPEN POM INTERPOLATED first, then just rip out the <dependencies> as new GAV objects
+ -- but that does not give us transitive deps
 
 - [GA METADATA] get/read a maven-metadata.xml
  -- useful for queries like "what release versions exist" and "what is the newest release version" and "what is the latest snapshot version"
@@ -269,7 +279,6 @@ class Context:
     - can set the location of a settings.xml for use with mvn queries.
     - can ask for a Project object for any groupId:artifactId: returns Project
     """
-    def __init__(self
     pass
 
 
@@ -290,6 +299,17 @@ class Project:
     def version(self, version: str) -> Version:
         return Version(self.groupId, self.artifactId, version)
 
+    def metadata(self) -> MavenMetadata:
+        """
+        Gets the maven-metadata.xml for this project.
+        """
+        # FIXME
+        pass
+
+    def versions(self) -> List[Version]:
+        vs = self.metadata().elements("versioning/versions/version")
+        return None if len(vs) == 0 else [v.text for v in vs]
+
 
 class Version:
     """
@@ -308,6 +328,14 @@ class Version:
 
     def artifact(self, classifier: str = None, packaging: str = "jar"):
         return Artifact(self.groupId, self.artifactId, self.version, classifier, packaging)
+
+    def pom(self) -> MavenPOM:
+        return MavenPOM(artifact(packaging="pom").path)
+
+    def dependencies(self) -> List[Artifact]:
+        # Doing this requires 
+        # FIXME
+        pass
 
 
 class Artifact:
@@ -334,9 +362,21 @@ class Artifact:
         return gav if self.classifier is None and self.packaging == "jar" \
                    else f"{gav}:{self.classifier or '(main)'}:{self.packaging}"
 
+    def path(self) -> Path:
+        """
+        Obtains a local file path to this artifact. If none is available, it is
+        downloaded from the configured sources, then cached to the configured
+        cache folder.
+        """
+        # FIXME: ways to achieve this:
+        # - look in 
+        # - `mvn dependency:get -Dartifact=...` requires Maven to be installed.
+        # - if Context has a 
+
 
 class Environment:
     """
+    A runtime environment.
     Environment object - corresponds to a list of artifacts:
     - constructed with list of *included* artifacts, and *excluded* artifacts
     - also has a dependency resolution strategy -- default/Maven, versus managed/scope-import
