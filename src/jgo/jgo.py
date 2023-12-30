@@ -255,8 +255,12 @@ def launch_java(
     cp = classpath_separator().join([os.path.join(jar_dir, "*")] + additional_jars)
     _logger.debug("class path: %s", cp)
     jvm_args = tuple(arg for arg in jvm_args) if jvm_args else tuple()
+    command = (java, "-cp", cp) + jvm_args + (main_class,) + app_args
+    _logger.debug(
+        f"Executing: '{command}' with subprocess kwargs: {subprocess_run_kwargs}"
+    )
     return subprocess.run(
-        (java, "-cp", cp) + jvm_args + (main_class,) + app_args,
+        command,
         stdout=stdout,
         stderr=stderr,
         **subprocess_run_kwargs,
@@ -785,6 +789,8 @@ def run(parser, argv=sys.argv[1:], stdout=None, stderr=None):
         verbose=args.verbose,
         link_type=link_type,
     )
+    _logger.debug(f"Primary endpoint: {primary_endpoint}")
+    _logger.debug(f"Workspace: {workspace}")
     return _run(
         workspace,
         primary_endpoint,
