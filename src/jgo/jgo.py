@@ -810,9 +810,11 @@ def _run(
         if primary_endpoint.main_class
         else os.path.join(workspace, "mainClass")
     )
+    _logger.debug(f"Using main class file: {main_class_file}")
     try:
         with open(main_class_file, "r") as f:
             main_class = f.readline()
+        _logger.info(f"Using main class: {main_class}")
         return launch_java(
             workspace,
             jvm_args,
