@@ -826,6 +826,7 @@ def _run(
             check=False,
         )
     except FileNotFoundError:
+        _logger.info(f"File not found: {main_class_file}")
         pass
 
     if not primary_endpoint.main_class:
