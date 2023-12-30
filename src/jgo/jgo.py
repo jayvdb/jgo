@@ -830,17 +830,20 @@ def _run(
         pass
 
     if not primary_endpoint.main_class:
-        _logger.info("Inferring main class from jar manifest")
+        _logger.info(f"Inferring main class from jar manifest of {primary_endpoint.jar_name()}")
         jar_path = glob.glob(
             os.path.join(workspace, primary_endpoint.jar_name())
             .replace(Endpoint.VERSION_RELEASE, "*")
             .replace(Endpoint.VERSION_LATEST, "*")
         )[0]
+        _logger.info(f"Opening jar {jar_path}")
+        main_class = None
         with zipfile.ZipFile(jar_path) as jar_file:
             with jar_file.open("META-INF/MANIFEST.MF") as manifest:
                 main_class_pattern = re.compile(".*Main-Class: *")
-                main_class = None
-                for line in manifest.readlines():
+                lines = manifest.readlines()
+                _logger.info(f"{jar_path} MANIFEST.MF: {lines}")
+                for line in lines:
                     line = line.strip().decode("utf-8")
                     if main_class_pattern.match(line):
                         main_class = main_class_pattern.sub("", line)
